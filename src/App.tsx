@@ -16,10 +16,17 @@ import {
   LayoutDashboard,
   Package,
   History,
-  Info
+  Info,
+  Sparkles,
+  Loader2,
+  ArrowLeft,
+  LogOut,
+  CreditCard,
+  Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BENTOS, CATEGORIES, CUSTOMIZATIONS, Bento, Order, OrderItem, CustomizationOption } from './constants';
+import { analyzeMeal } from './services/gemini';
 
 // --- Components ---
 
@@ -175,6 +182,8 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
   const [quantity, setQuantity] = useState(1);
   const [selectedRice, setSelectedRice] = useState(CUSTOMIZATIONS.find(c => c.category === 'rice' && c.price === 0)!);
   const [selectedExtras, setSelectedExtras] = useState<CustomizationOption[]>([]);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const totalPrice = useMemo(() => {
     const extrasTotal = selectedExtras.reduce((sum, e) => sum + e.price, 0);
@@ -187,6 +196,18 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
     } else {
       setSelectedExtras([...selectedExtras, extra]);
     }
+  };
+
+  const handleAIAnalysis = async () => {
+    setIsAnalyzing(true);
+    const analysis = await analyzeMeal(bento.name, bento.description, {
+      calories: bento.calories,
+      protein: bento.protein,
+      fat: bento.fat,
+      carbs: bento.carbs
+    });
+    setAiAnalysis(analysis);
+    setIsAnalyzing(false);
   };
 
   return (
@@ -220,7 +241,34 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
             <h2 className="text-2xl font-bold text-slate-800">{bento.name}</h2>
             <span className="text-2xl font-bold text-primary">${bento.price}</span>
           </div>
-          <p className="text-slate-500 text-sm leading-relaxed">{bento.description}</p>
+          <p className="text-slate-500 text-sm leading-relaxed mb-4">{bento.description}</p>
+          
+          <button 
+            onClick={handleAIAnalysis}
+            disabled={isAnalyzing}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+            {aiAnalysis ? '重新進行 AI 分析' : 'AI 營養分析'}
+          </button>
+
+          <AnimatePresence>
+            {aiAnalysis && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10"
+              >
+                <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs">
+                  <Sparkles size={14} />
+                  AI 營養師建議
+                </div>
+                <div className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">
+                  {aiAnalysis}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <section>
@@ -559,6 +607,120 @@ const MerchantDashboard = ({ orders, bentos, onToggleStock }: { orders: Order[],
   );
 };
 
+const OrderHistoryView = ({ orders }: { orders: Order[] }) => (
+  <div className="p-4 space-y-4">
+    <h3 className="text-xl font-bold text-slate-800 px-2">訂單紀錄</h3>
+    {orders.length === 0 ? (
+      <div className="text-center py-20 text-slate-400">目前沒有訂單紀錄</div>
+    ) : (
+      orders.map(order => (
+        <div key={order.id} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                order.type === 'delivery' ? 'bg-blue-100 text-blue-600' : 
+                order.type === 'pickup' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'
+              }`}>
+                {order.type === 'delivery' ? '外送' : order.type === 'pickup' ? '自取' : '預約'}
+              </span>
+              <h4 className="font-bold text-slate-800 mt-2">#{order.id.slice(-4)}</h4>
+            </div>
+            <div className="text-right">
+              <span className="text-xs text-slate-400 block">{order.createdAt.toLocaleDateString()}</span>
+              <span className="text-xs text-slate-400 block">{order.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          </div>
+          <div className="space-y-2 mb-4">
+            {order.items.map((item, i) => (
+              <div key={i} className="flex justify-between text-sm text-slate-600">
+                <span>{item.name} x {item.quantity}</span>
+                <span>${(item.price + item.customizations.reduce((s, c) => s + c.price, 0)) * item.quantity}</span>
+              </div>
+            ))}
+          </div>
+          <div className="pt-4 border-t border-slate-50 flex justify-between items-center">
+            <span className="text-xs font-bold text-slate-400">總計金額</span>
+            <span className="font-bold text-primary">${order.total}</span>
+          </div>
+        </div>
+      ))
+    )}
+  </div>
+);
+
+const ProfileView = () => (
+  <div className="p-4 space-y-6">
+    <div className="flex items-center gap-4 p-4 bg-white rounded-3xl shadow-sm border border-slate-100">
+      <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+        <User size={32} />
+      </div>
+      <div>
+        <h3 className="font-bold text-slate-800">王小明</h3>
+        <p className="text-xs text-slate-400">健康點數：1,250 pts</p>
+      </div>
+    </div>
+
+    <div className="bg-white rounded-3xl overflow-hidden border border-slate-100">
+      <button className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors border-b border-slate-50">
+        <div className="flex items-center gap-3">
+          <Bell size={20} className="text-slate-400" />
+          <span className="text-sm font-medium text-slate-700">通知設定</span>
+        </div>
+        <ChevronRight size={18} className="text-slate-300" />
+      </button>
+      <button className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors border-b border-slate-50">
+        <div className="flex items-center gap-3">
+          <CreditCard size={20} className="text-slate-400" />
+          <span className="text-sm font-medium text-slate-700">支付方式</span>
+        </div>
+        <ChevronRight size={18} className="text-slate-300" />
+      </button>
+      <button className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+        <div className="flex items-center gap-3">
+          <LogOut size={20} className="text-red-400" />
+          <span className="text-sm font-medium text-red-500">登出</span>
+        </div>
+      </button>
+    </div>
+
+    <div className="bg-gradient-to-br from-primary to-indigo-600 p-6 rounded-3xl text-white shadow-lg shadow-primary/20">
+      <h4 className="font-bold mb-2">專屬營養師諮詢</h4>
+      <p className="text-xs opacity-80 mb-4">您還有 2 次免費的線上營養師諮詢額度，快來預約吧！</p>
+      <button className="px-4 py-2 bg-white text-primary rounded-xl text-xs font-bold">立即預約</button>
+    </div>
+  </div>
+);
+
+const SuccessModal = ({ onClose }: { onClose: () => void }) => (
+  <motion.div 
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6"
+  >
+    <motion.div 
+      initial={{ scale: 0.9, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      className="bg-white rounded-3xl p-8 w-full max-w-xs text-center shadow-2xl"
+    >
+      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6">
+        <CheckCircle2 size={48} />
+      </div>
+      <h3 className="text-xl font-bold text-slate-800 mb-2">訂單已送出！</h3>
+      <p className="text-sm text-slate-500 mb-8">
+        獲得「49元燕麥奶昔體驗券」一張。<br/>
+        請至門市出示此畫面兌換。
+      </p>
+      <button 
+        onClick={onClose}
+        className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+      >
+        太棒了！
+      </button>
+    </motion.div>
+  </motion.div>
+);
+
 // --- Main App ---
 
 export default function App() {
@@ -569,6 +731,7 @@ export default function App() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [bentos, setBentos] = useState<Bento[]>(BENTOS);
   const [filter, setFilter] = useState('全部');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const filteredBentos = useMemo(() => {
     if (filter === '全部') return bentos;
@@ -582,10 +745,15 @@ export default function App() {
   };
 
   const handleCheckout = (type: Order['type']) => {
+    const total = cart.reduce((sum, item) => {
+      const itemBase = item.price + item.customizations.reduce((s, c) => s + c.price, 0);
+      return sum + (itemBase * item.quantity);
+    }, 0);
+
     const newOrder: Order = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 11),
       items: cart,
-      total: cart.reduce((s, i) => s + (i.price * i.quantity), 0),
+      total,
       status: 'pending',
       type,
       customerName: '王小明',
@@ -594,7 +762,7 @@ export default function App() {
     setOrders([newOrder, ...orders]);
     setCart([]);
     setActiveTab('menu');
-    alert('訂單已送出！獲得「49元燕麥奶昔體驗券」一張。');
+    setShowSuccess(true);
   };
 
   const toggleStock = (id: string) => {
@@ -679,6 +847,28 @@ export default function App() {
               />
             </motion.div>
           )}
+
+          {activeTab === 'history' && (
+            <motion.div 
+              key="history"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <OrderHistoryView orders={orders} />
+            </motion.div>
+          )}
+
+          {activeTab === 'profile' && (
+            <motion.div 
+              key="profile"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+            >
+              <ProfileView />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -723,6 +913,9 @@ export default function App() {
             onClose={() => setSelectedBento(null)} 
             onAddToCart={handleAddToCart}
           />
+        )}
+        {showSuccess && (
+          <SuccessModal onClose={() => setShowSuccess(false)} />
         )}
       </AnimatePresence>
     </div>
