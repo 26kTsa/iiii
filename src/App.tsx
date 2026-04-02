@@ -85,15 +85,15 @@ const Header = ({ activeTab, setActiveTab, cartCount }: { activeTab: string, set
 );
 
 const Hero = () => (
-  <section className="relative py-20 px-6 overflow-hidden bg-slate-900 rounded-b-[60px]">
-    <div className="absolute inset-0 opacity-20">
+  <section className="relative py-24 px-6 overflow-hidden bg-slate-900 rounded-b-[60px]">
+    <div className="absolute inset-0 opacity-40">
       <img 
-        src="https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&q=80&w=1920" 
+        src="https://images.unsplash.com/photo-1569058242253-92a9c71f9867?auto=format&fit=crop&q=80&w=1920" 
         className="w-full h-full object-cover"
         referrerPolicy="no-referrer"
       />
     </div>
-    <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent" />
+    <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/40 to-transparent" />
     <div className="max-w-7xl mx-auto relative z-10">
       <motion.div 
         initial={{ opacity: 0, x: -40 }}
@@ -369,9 +369,16 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
                     }}
                   />
                 )}
-                <div className="flex justify-between items-center w-full px-1">
-                  <span>{opt.name}</span>
-                  {opt.price > 0 && <span className="text-xs font-black text-primary">+${opt.price}</span>}
+                <div className="flex flex-col w-full px-1">
+                  <div className="flex justify-between items-center w-full">
+                    <span>{opt.name}</span>
+                    {opt.price > 0 && <span className="text-xs font-black text-primary">+${opt.price}</span>}
+                  </div>
+                  {opt.description && (
+                    <p className="text-[10px] font-medium text-slate-400 mt-1 leading-tight text-left line-clamp-2">
+                      {opt.description}
+                    </p>
+                  )}
                 </div>
               </button>
             ))}
@@ -408,13 +415,20 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
                     }}
                   />
                 )}
-                <div className="flex-1 flex items-center gap-4">
-                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
-                    selectedExtras.find(e => e.id === opt.id) ? 'bg-primary border-primary scale-110' : 'border-slate-300'
-                  }`}>
-                    {selectedExtras.find(e => e.id === opt.id) && <CheckCircle2 size={16} className="text-white" />}
+                <div className="flex-1 flex flex-col gap-1">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                      selectedExtras.find(e => e.id === opt.id) ? 'bg-primary border-primary scale-110' : 'border-slate-300'
+                    }`}>
+                      {selectedExtras.find(e => e.id === opt.id) && <CheckCircle2 size={16} className="text-white" />}
+                    </div>
+                    <span className="text-base">{opt.name}</span>
                   </div>
-                  <span className="text-base">{opt.name}</span>
+                  {opt.description && (
+                    <p className="text-xs font-medium text-slate-400 pl-10 leading-relaxed">
+                      {opt.description}
+                    </p>
+                  )}
                 </div>
                 <span className="text-primary text-lg font-black">+${opt.price}</span>
               </button>
