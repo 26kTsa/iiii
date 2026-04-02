@@ -1,0 +1,7 @@
+{
+  "name": "阿爸的家園-點餐系統",
+  "description": "結合客製化健康便當與個人化營養追蹤的 OMO 點餐平台，提供增肌減脂、低 GI 等專業營養分類。",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
