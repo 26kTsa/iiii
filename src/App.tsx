@@ -27,42 +27,100 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { BENTOS, CATEGORIES, CUSTOMIZATIONS, Bento, Order, OrderItem, CustomizationOption } from './constants';
 import { analyzeMeal } from './services/gemini';
+import { AIChatbot } from './components/AIChatbot';
 
 // --- Components ---
 
 const Header = ({ activeTab, setActiveTab, cartCount }: { activeTab: string, setActiveTab: (tab: string) => void, cartCount: number }) => (
-  <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-    <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
-      <div className="flex items-center gap-2" onClick={() => setActiveTab('menu')}>
-        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-          <Utensils size={24} />
+  <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100">
+    <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div className="flex items-center gap-4 cursor-pointer" onClick={() => setActiveTab('menu')}>
+        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20 rotate-3 transition-transform hover:rotate-0">
+          <Utensils size={28} />
         </div>
-        <div>
-          <h1 className="text-lg font-bold text-slate-800 leading-tight">阿爸的家園</h1>
-          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Healthy Nutrition Center</p>
+        <div className="hidden sm:block">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">阿爸的家園</h1>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Premium Healthy Kitchen</p>
+          </div>
         </div>
       </div>
-      <div className="flex items-center gap-4">
+
+      <nav className="hidden md:flex items-center gap-8">
+        {['menu', 'history', 'profile'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`text-sm font-black uppercase tracking-widest transition-all hover:text-primary ${
+              activeTab === tab ? 'text-primary' : 'text-slate-400'
+            }`}
+          >
+            {tab === 'menu' ? '點餐' : tab === 'history' ? '紀錄' : '我的'}
+          </button>
+        ))}
+      </nav>
+
+      <div className="flex items-center gap-3">
         <button 
           onClick={() => setActiveTab('cart')}
-          className="relative p-2 text-slate-600 hover:text-primary transition-colors"
+          className="relative p-3 text-slate-600 hover:bg-slate-50 rounded-2xl transition-all active:scale-90 group"
         >
-          <ShoppingBag size={24} />
+          <ShoppingBag size={24} className="group-hover:text-primary transition-colors" />
           {cartCount > 0 && (
-            <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+            <span className="absolute top-1.5 right-1.5 bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
               {cartCount}
             </span>
           )}
         </button>
         <button 
           onClick={() => setActiveTab('merchant')}
-          className="p-2 text-slate-600 hover:text-primary transition-colors"
+          className="p-3 text-slate-600 hover:bg-slate-50 rounded-2xl transition-all active:scale-90"
         >
-          <Settings size={22} />
+          <Settings size={24} />
         </button>
       </div>
     </div>
   </header>
+);
+
+const Hero = () => (
+  <section className="relative py-20 px-6 overflow-hidden bg-slate-900 rounded-b-[60px]">
+    <div className="absolute inset-0 opacity-20">
+      <img 
+        src="https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&q=80&w=1920" 
+        className="w-full h-full object-cover"
+        referrerPolicy="no-referrer"
+      />
+    </div>
+    <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent" />
+    <div className="max-w-7xl mx-auto relative z-10">
+      <motion.div 
+        initial={{ opacity: 0, x: -40 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="max-w-2xl"
+      >
+        <span className="inline-block px-4 py-1.5 bg-primary/20 backdrop-blur text-primary text-xs font-black rounded-full mb-6 uppercase tracking-widest border border-primary/20">
+          Healthy Nutrition Center
+        </span>
+        <h1 className="text-5xl md:text-7xl font-black text-white mb-8 leading-[1.1] tracking-tighter">
+          為您的健康<br/>
+          <span className="text-primary">量身打造</span> 的每一餐
+        </h1>
+        <p className="text-lg text-slate-300 mb-10 leading-relaxed max-w-lg">
+          結合客製化健康便當與個人化營養追蹤，提供增肌減脂、低 GI 等專業營養分類，讓健康變得更簡單。
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <button className="px-8 py-4 bg-primary text-white font-black rounded-2xl shadow-2xl shadow-primary/40 hover:scale-105 transition-all">
+            立即點餐
+          </button>
+          <button className="px-8 py-4 bg-white/10 backdrop-blur text-white font-black rounded-2xl border border-white/20 hover:bg-white/20 transition-all">
+            了解更多
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  </section>
 );
 
 const HealthQuiz = ({ onComplete }: { onComplete: () => void }) => {
@@ -119,59 +177,62 @@ const HealthQuiz = ({ onComplete }: { onComplete: () => void }) => {
 const BentoCard: React.FC<{ bento: Bento, onSelect: (b: Bento) => void }> = ({ bento, onSelect }) => (
   <motion.div 
     layout
-    initial={{ opacity: 0, scale: 0.95 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    whileHover={{ y: -8 }}
+    className="bg-white rounded-[40px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all cursor-pointer group"
     onClick={() => onSelect(bento)}
   >
-    <div className="relative h-48 overflow-hidden">
+    <div className="relative h-64 overflow-hidden">
       <img 
         src={bento.image} 
         alt={bento.name} 
-        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
         referrerPolicy="no-referrer"
         onError={(e) => {
           (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/food/800/600';
         }}
       />
-      <div className="absolute top-3 left-3 flex flex-wrap gap-1">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute top-5 left-5 flex flex-wrap gap-2">
         {bento.tags.map(tag => (
-          <span key={tag} className="px-2 py-1 bg-white/90 backdrop-blur text-[10px] font-bold text-primary rounded-lg shadow-sm">
+          <span key={tag} className="px-4 py-1.5 bg-white/95 backdrop-blur text-[10px] font-black text-primary rounded-full shadow-sm uppercase tracking-widest">
             {tag}
           </span>
         ))}
       </div>
+      <div className="absolute bottom-5 right-5">
+        <div className="bg-white/95 backdrop-blur px-5 py-2.5 rounded-2xl shadow-xl border border-white/20">
+          <span className="text-xl font-black text-slate-900">${bento.price}</span>
+        </div>
+      </div>
       {!bento.inStock && (
-        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] flex items-center justify-center">
-          <span className="px-4 py-2 bg-white text-slate-900 font-bold rounded-full text-sm">已售罄</span>
+        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[4px] flex items-center justify-center">
+          <div className="px-8 py-4 bg-white text-slate-900 font-black rounded-2xl text-sm tracking-[0.2em] uppercase">
+            Sold Out
+          </div>
         </div>
       )}
     </div>
-    <div className="p-4">
-      <div className="flex justify-between items-start mb-1">
-        <h3 className="font-bold text-slate-800">{bento.name}</h3>
-        <span className="font-bold text-primary">${bento.price}</span>
-      </div>
-      <p className="text-xs text-slate-500 line-clamp-2 mb-3">{bento.description}</p>
-      <div className="flex items-center gap-3 text-[10px] font-mono text-slate-400 border-t border-slate-50 pt-3">
-        <div className="flex flex-col">
-          <span className="text-slate-600 font-bold">{bento.calories}</span>
-          <span>KCAL</span>
+    <div className="p-6">
+      <h3 className="text-xl font-black text-slate-900 mb-2 group-hover:text-primary transition-colors">{bento.name}</h3>
+      <p className="text-sm text-slate-500 line-clamp-2 mb-6 leading-relaxed">{bento.description}</p>
+      <div className="grid grid-cols-4 gap-3 bg-slate-50 p-4 rounded-3xl border border-slate-100">
+        <div className="text-center">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Kcal</p>
+          <p className="text-sm font-black text-slate-800">{bento.calories}</p>
         </div>
-        <div className="w-px h-6 bg-slate-100" />
-        <div className="flex flex-col">
-          <span className="text-slate-600 font-bold">{bento.protein}g</span>
-          <span>PRO</span>
+        <div className="text-center border-l border-slate-200">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Pro</p>
+          <p className="text-sm font-black text-slate-800">{bento.protein}g</p>
         </div>
-        <div className="w-px h-6 bg-slate-100" />
-        <div className="flex flex-col">
-          <span className="text-slate-600 font-bold">{bento.fat}g</span>
-          <span>FAT</span>
+        <div className="text-center border-l border-slate-200">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Fat</p>
+          <p className="text-sm font-black text-slate-800">{bento.fat}g</p>
         </div>
-        <div className="w-px h-6 bg-slate-100" />
-        <div className="flex flex-col">
-          <span className="text-slate-600 font-bold">{bento.carbs}g</span>
-          <span>CARB</span>
+        <div className="text-center border-l border-slate-200">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Carb</p>
+          <p className="text-sm font-black text-slate-800">{bento.carbs}g</p>
         </div>
       </div>
     </div>
@@ -215,9 +276,10 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
-      className="fixed inset-0 z-[60] bg-white flex flex-col"
+      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      className="fixed inset-0 z-[60] bg-white flex flex-col md:flex-row"
     >
-      <div className="relative h-64">
+      <div className="relative h-80 md:h-full md:w-1/2">
         <img 
           src={bento.image} 
           alt={bento.name} 
@@ -227,43 +289,49 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
             (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/food/800/600';
           }}
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent md:bg-gradient-to-r md:from-black/40 md:to-transparent" />
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/40 transition-colors"
+          className="absolute top-6 left-6 p-3 bg-white/20 backdrop-blur-xl rounded-2xl text-white hover:bg-white/40 transition-all active:scale-90 z-10"
         >
-          <X size={24} />
+          <ArrowLeft size={24} />
         </button>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-6 space-y-8">
+      <div className="flex-1 overflow-y-auto p-8 -mt-10 md:mt-0 relative bg-white rounded-t-[40px] md:rounded-none shadow-2xl md:shadow-none space-y-8">
         <div>
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-2xl font-bold text-slate-800">{bento.name}</h2>
-            <span className="text-2xl font-bold text-primary">${bento.price}</span>
+          <div className="flex justify-between items-start mb-3">
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">{bento.name}</h2>
+            <div className="bg-primary/10 px-4 py-2 rounded-2xl">
+              <span className="text-2xl font-black text-primary">${bento.price}</span>
+            </div>
           </div>
-          <p className="text-slate-500 text-sm leading-relaxed mb-4">{bento.description}</p>
+          <p className="text-slate-500 text-sm md:text-base leading-relaxed mb-6">{bento.description}</p>
           
           <button 
             onClick={handleAIAnalysis}
             disabled={isAnalyzing}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-2xl text-sm font-black shadow-xl shadow-primary/30 active:scale-95 transition-all disabled:opacity-50"
           >
-            {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-            {aiAnalysis ? '重新進行 AI 分析' : 'AI 營養分析'}
+            {isAnalyzing ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+            {aiAnalysis ? '重新進行 AI 分析' : 'AI 營養大師分析'}
           </button>
 
           <AnimatePresence>
             {aiAnalysis && (
               <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 p-6 bg-primary/5 rounded-3xl border border-primary/10 relative overflow-hidden"
               >
-                <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs">
-                  <Sparkles size={14} />
-                  AI 營養師建議
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Sparkles size={48} className="text-primary" />
                 </div>
-                <div className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">
+                <div className="flex items-center gap-2 mb-3 text-primary font-black text-sm">
+                  <Sparkles size={16} />
+                  AI 營養師觀點
+                </div>
+                <div className="text-sm md:text-base text-slate-600 leading-relaxed whitespace-pre-wrap relative z-10">
                   {aiAnalysis}
                 </div>
               </motion.div>
@@ -272,26 +340,29 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
         </div>
 
         <section>
-          <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <div className="w-1.5 h-4 bg-primary rounded-full" />
-            主食調整
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
+              <div className="w-2 h-6 bg-primary rounded-full" />
+              主食調整
+            </h3>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">必選項目</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             {CUSTOMIZATIONS.filter(c => c.category === 'rice').map(opt => (
               <button
                 key={opt.id}
                 onClick={() => setSelectedRice(opt)}
-                className={`p-2 rounded-2xl border-2 transition-all text-sm font-medium flex flex-col items-center gap-2 ${
+                className={`p-3 rounded-3xl border-2 transition-all text-sm font-black flex flex-col items-center gap-3 ${
                   selectedRice.id === opt.id 
-                    ? 'border-primary bg-primary/5 text-primary' 
-                    : 'border-slate-100 bg-slate-50 text-slate-600'
+                    ? 'border-primary bg-primary/5 text-primary shadow-lg shadow-primary/5' 
+                    : 'border-slate-100 bg-slate-50 text-slate-500 grayscale opacity-60'
                 }`}
               >
                 {opt.image && (
                   <img 
                     src={opt.image} 
                     alt={opt.name} 
-                    className="w-full h-20 object-cover rounded-xl" 
+                    className="w-full h-24 object-cover rounded-2xl" 
                     referrerPolicy="no-referrer"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/rice/200/200';
@@ -300,7 +371,7 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
                 )}
                 <div className="flex justify-between items-center w-full px-1">
                   <span>{opt.name}</span>
-                  {opt.price > 0 && <span className="text-[10px] opacity-70">+{opt.price}</span>}
+                  {opt.price > 0 && <span className="text-xs font-black text-primary">+${opt.price}</span>}
                 </div>
               </button>
             ))}
@@ -308,81 +379,84 @@ const BentoDetail = ({ bento, onClose, onAddToCart }: { bento: Bento, onClose: (
         </section>
 
         <section>
-          <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <div className="w-1.5 h-4 bg-primary rounded-full" />
-            加購升級
-          </h3>
-          <div className="space-y-3">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
+              <div className="w-2 h-6 bg-primary rounded-full" />
+              加購升級
+            </h3>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">多選項目</span>
+          </div>
+          <div className="space-y-4">
             {CUSTOMIZATIONS.filter(c => c.category === 'extra').map(opt => (
               <button
                 key={opt.id}
                 onClick={() => toggleExtra(opt)}
-                className={`w-full p-3 rounded-2xl border-2 transition-all text-sm font-medium flex items-center gap-4 ${
+                className={`w-full p-4 rounded-3xl border-2 transition-all text-sm font-black flex items-center gap-5 ${
                   selectedExtras.find(e => e.id === opt.id)
-                    ? 'border-primary bg-primary/5 text-primary' 
-                    : 'border-slate-100 bg-slate-50 text-slate-600'
+                    ? 'border-primary bg-primary/5 text-primary shadow-lg shadow-primary/5' 
+                    : 'border-slate-100 bg-slate-50 text-slate-500'
                 }`}
               >
                 {opt.image && (
                   <img 
                     src={opt.image} 
                     alt={opt.name} 
-                    className="w-16 h-16 object-cover rounded-xl" 
+                    className="w-20 h-20 object-cover rounded-2xl" 
                     referrerPolicy="no-referrer"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/extra/200/200';
                     }}
                   />
                 )}
-                <div className="flex-1 flex items-center gap-3">
-                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-                    selectedExtras.find(e => e.id === opt.id) ? 'bg-primary border-primary' : 'border-slate-300'
+                <div className="flex-1 flex items-center gap-4">
+                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                    selectedExtras.find(e => e.id === opt.id) ? 'bg-primary border-primary scale-110' : 'border-slate-300'
                   }`}>
-                    {selectedExtras.find(e => e.id === opt.id) && <CheckCircle2 size={14} className="text-white" />}
+                    {selectedExtras.find(e => e.id === opt.id) && <CheckCircle2 size={16} className="text-white" />}
                   </div>
-                  <span>{opt.name}</span>
+                  <span className="text-base">{opt.name}</span>
                 </div>
-                <span className="text-primary font-bold">+${opt.price}</span>
+                <span className="text-primary text-lg font-black">+${opt.price}</span>
               </button>
             ))}
           </div>
         </section>
-      </div>
 
-      <div className="p-6 border-t border-slate-100 bg-white">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4 bg-slate-100 p-1 rounded-2xl">
-            <button 
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm text-slate-600"
-            >
-              <Minus size={20} />
-            </button>
-            <span className="font-bold text-lg w-8 text-center">{quantity}</span>
-            <button 
-              onClick={() => setQuantity(quantity + 1)}
-              className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm text-slate-600"
-            >
-              <Plus size={20} />
-            </button>
+        <div className="p-8 border-t border-slate-100 bg-white/80 backdrop-blur-xl sticky bottom-0">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-5 bg-slate-100 p-1.5 rounded-2xl">
+              <button 
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="w-12 h-12 flex items-center justify-center bg-white rounded-xl shadow-sm text-slate-900 active:scale-90 transition-all"
+              >
+                <Minus size={24} />
+              </button>
+              <span className="font-black text-xl w-10 text-center">{quantity}</span>
+              <button 
+                onClick={() => setQuantity(quantity + 1)}
+                className="w-12 h-12 flex items-center justify-center bg-white rounded-xl shadow-sm text-slate-900 active:scale-90 transition-all"
+              >
+                <Plus size={24} />
+              </button>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Amount</p>
+              <p className="text-3xl font-black text-slate-900 tracking-tighter">${totalPrice}</p>
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">總計金額</p>
-            <p className="text-2xl font-bold text-slate-800">${totalPrice}</p>
-          </div>
+          <button 
+            onClick={() => onAddToCart({
+              bentoId: bento.id,
+              name: bento.name,
+              price: bento.price,
+              quantity,
+              customizations: [selectedRice, ...selectedExtras]
+            })}
+            className="w-full py-5 bg-primary text-white font-black rounded-[24px] shadow-2xl shadow-primary/40 active:scale-95 transition-all text-lg tracking-wide"
+          >
+            加入購物車
+          </button>
         </div>
-        <button 
-          onClick={() => onAddToCart({
-            bentoId: bento.id,
-            name: bento.name,
-            price: bento.price,
-            quantity,
-            customizations: [selectedRice, ...selectedExtras]
-          })}
-          className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/30 active:scale-95 transition-transform"
-        >
-          加入購物車
-        </button>
       </div>
     </motion.div>
   );
@@ -696,24 +770,25 @@ const SuccessModal = ({ onClose }: { onClose: () => void }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6"
+    className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-8"
   >
     <motion.div 
-      initial={{ scale: 0.9, y: 20 }}
-      animate={{ scale: 1, y: 0 }}
-      className="bg-white rounded-3xl p-8 w-full max-w-xs text-center shadow-2xl"
+      initial={{ scale: 0.8, y: 40, rotate: -2 }}
+      animate={{ scale: 1, y: 0, rotate: 0 }}
+      className="bg-white rounded-[40px] p-10 w-full max-w-xs text-center shadow-2xl relative overflow-hidden"
     >
-      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6">
-        <CheckCircle2 size={48} />
+      <div className="absolute top-0 left-0 w-full h-2 bg-secondary" />
+      <div className="w-24 h-24 bg-secondary/10 rounded-[32px] flex items-center justify-center text-secondary mx-auto mb-8 rotate-6">
+        <CheckCircle2 size={56} />
       </div>
-      <h3 className="text-xl font-bold text-slate-800 mb-2">訂單已送出！</h3>
-      <p className="text-sm text-slate-500 mb-8">
+      <h3 className="text-2xl font-black text-slate-900 mb-3">訂單已送出！</h3>
+      <p className="text-sm text-slate-500 mb-10 leading-relaxed">
         獲得「49元燕麥奶昔體驗券」一張。<br/>
-        請至門市出示此畫面兌換。
+        <span className="font-black text-secondary">請至門市出示此畫面兌換。</span>
       </p>
       <button 
         onClick={onClose}
-        className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+        className="w-full py-5 bg-secondary text-white font-black rounded-[24px] shadow-xl shadow-secondary/30 active:scale-95 transition-all text-lg"
       >
         太棒了！
       </button>
@@ -770,14 +845,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pb-20">
+    <div className="min-h-screen bg-slate-50 font-sans pb-20 md:pb-0">
       <Header 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
         cartCount={cart.reduce((s, i) => s + i.quantity, 0)} 
       />
 
-      <main className="max-w-md mx-auto">
+      <main className="max-w-7xl mx-auto">
         <AnimatePresence mode="wait">
           {activeTab === 'menu' && (
             <motion.div 
@@ -786,26 +861,39 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {showQuiz && <HealthQuiz onComplete={() => setShowQuiz(false)} />}
+              <Hero />
               
-              <div className="px-4 py-6">
-                <div className="flex overflow-x-auto gap-2 no-scrollbar pb-4">
-                  {CATEGORIES.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setFilter(cat)}
-                      className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                        filter === cat 
-                          ? 'bg-primary text-white shadow-md shadow-primary/20' 
-                          : 'bg-white text-slate-500 border border-slate-100'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+              <div className="px-6 py-12">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+                  <div>
+                    <h2 className="text-3xl font-black text-slate-900 mb-2">精選餐盒</h2>
+                    <p className="text-slate-500 font-medium">根據您的健康需求，挑選最適合的營養組合。</p>
+                  </div>
+                  
+                  <div className="flex overflow-x-auto gap-3 no-scrollbar pb-2 md:pb-0">
+                    {CATEGORIES.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setFilter(cat)}
+                        className={`whitespace-nowrap px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
+                          filter === cat 
+                            ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' 
+                            : 'bg-white text-slate-400 border border-slate-100 hover:bg-slate-50'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 mt-4">
+                {showQuiz && (
+                  <div className="max-w-2xl mx-auto mb-16">
+                    <HealthQuiz onComplete={() => setShowQuiz(false)} />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
                   {filteredBentos.map(bento => (
                     <BentoCard 
                       key={bento.id} 
@@ -873,38 +961,48 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation for Mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-t border-slate-200">
-        <div className="max-w-md mx-auto flex justify-around items-center h-16 px-4">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-slate-100 md:hidden">
+        <div className="max-w-md mx-auto flex justify-around items-center h-20 px-6">
           <button 
             onClick={() => setActiveTab('menu')}
-            className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'menu' ? 'text-primary' : 'text-slate-400'}`}
+            className={`flex flex-col items-center gap-1.5 transition-all active:scale-90 ${activeTab === 'menu' ? 'text-primary' : 'text-slate-300'}`}
           >
-            <Utensils size={20} />
-            <span className="text-[10px] font-bold">點餐</span>
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'menu' ? 'bg-primary/10' : ''}`}>
+              <Utensils size={22} weight={activeTab === 'menu' ? 'bold' : 'regular'} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest">點餐</span>
           </button>
           <button 
             onClick={() => setActiveTab('cart')}
-            className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'cart' ? 'text-primary' : 'text-slate-400'}`}
+            className={`flex flex-col items-center gap-1.5 transition-all active:scale-90 ${activeTab === 'cart' ? 'text-primary' : 'text-slate-300'}`}
           >
-            <ShoppingBag size={20} />
-            <span className="text-[10px] font-bold">購物車</span>
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'cart' ? 'bg-primary/10' : ''}`}>
+              <ShoppingBag size={22} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest">購物車</span>
           </button>
           <button 
             onClick={() => setActiveTab('history')}
-            className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'history' ? 'text-primary' : 'text-slate-400'}`}
+            className={`flex flex-col items-center gap-1.5 transition-all active:scale-90 ${activeTab === 'history' ? 'text-primary' : 'text-slate-300'}`}
           >
-            <History size={20} />
-            <span className="text-[10px] font-bold">訂單</span>
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'history' ? 'bg-primary/10' : ''}`}>
+              <History size={22} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest">紀錄</span>
           </button>
           <button 
             onClick={() => setActiveTab('profile')}
-            className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'profile' ? 'text-primary' : 'text-slate-400'}`}
+            className={`flex flex-col items-center gap-1.5 transition-all active:scale-90 ${activeTab === 'profile' ? 'text-primary' : 'text-slate-300'}`}
           >
-            <User size={20} />
-            <span className="text-[10px] font-bold">我的</span>
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'profile' ? 'bg-primary/10' : ''}`}>
+              <User size={22} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest">我的</span>
           </button>
         </div>
       </nav>
+
+      <AIChatbot />
 
       <AnimatePresence>
         {selectedBento && (
